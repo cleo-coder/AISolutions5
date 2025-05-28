@@ -1,0 +1,102 @@
+/* app.css */
+
+html, body, #root {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+    font-family: 'DM Serif Display', serif, system-ui, sans-serif;
+    background-color: var(--bg-color, #f3f4f6);
+    color: var(--text-color, #1f2937);
+}
+
+body {
+    box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: inherit;
+}
+
+.logo {
+    height: 6em;
+    padding: 1.5em;
+    will-change: filter;
+    transition: filter 300ms;
+}
+
+    .logo:hover {
+        filter: drop-shadow(0 0 2em #646cffaa);
+    }
+
+    .logo.react:hover {
+        filter: drop-shadow(0 0 2em #61dafbaa);
+    }
+
+@keyframes logo-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    a:nth-of-type(2) .logo {
+        animation: logo-spin infinite 20s linear;
+    }
+}
+
+.card {
+    padding: 2em;
+}
+
+.read-the-docs {
+    color: #888;
+}
+
+:root {
+    --orb-glow-color1: rgba(59, 130, 246, 0.8);
+    --orb-glow-color2: rgba(59, 130, 246, 0.7);
+    --orb-glow-color3: rgba(59, 130, 246, 0.6);
+    --orb-glow-color4: rgba(59, 130, 246, 0.5);
+}
+
+.dark {
+    --orb-glow-color1: rgba(252, 211, 77, 0.9);
+    --orb-glow-color2: rgba(252, 211, 77, 0.8);
+    --orb-glow-color3: rgba(252, 211, 77, 0.7);
+    --orb-glow-color4: rgba(252, 211, 77, 0.6);
+}
+
+/* Custom Scrollbar Styles for Webkit browsers (Chrome, Safari) */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Color of the track */
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #888; /* Color of the scroll thumb */
+    border-radius: 10px;
+}
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #555; /* Color of the scroll thumb on hover */
+    }
+
+/* Custom Scrollbar Styles for Firefox */
+.custom-scrollbar {
+    scrollbar-width: thin; /* "auto" or "thin" */
+    scrollbar-color: #888 #f1f1f1; /* thumb color track color */
+}
