@@ -1,5 +1,4 @@
-﻿// server.js
-require('dotenv').config();
+﻿require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -20,14 +19,21 @@ const port = process.env.PORT || 3000;
 const SECRET_KEY = process.env.SECRET_KEY || 'your_secret_key';
 const server = http.createServer(app);
 
+// Helper function to validate allowed domains dynamically
+const checkAllowedOrigin = (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (/^http:\/\/localhost:\d+$/.test(origin)) return callback(null, true);
+    if (origin === process.env.CLIENT_URL) return callback(null, true);
+    
+    //  Dynamically whitelist all Vercel domains (Previews + Production)
+    if (/\.vercel\.app$/.test(origin)) return callback(null, true);
+
+    callback(new Error('CORS: Not allowed by policy: ' + origin));
+};
+
 const io = new Server(server, {
     cors: {
-        origin: function (origin, callback) {
-            if (!origin) return callback(null, true);
-            if (/^http:\/\/localhost:\d+$/.test(origin)) return callback(null, true);
-            if (origin === process.env.CLIENT_URL) return callback(null, true);
-            callback(new Error('CORS: Not allowed by policy: ' + origin));
-        },
+        origin: checkAllowedOrigin, // Uses the updated validation rules
         methods: ['GET', 'POST', 'PUT', 'DELETE'],
         credentials: true,
     }
@@ -68,13 +74,9 @@ io.on('connection', (socket) => {
     });
 });
 
+// Applies the updated validation rules to Express HTTP requests
 app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin) return callback(null, true);
-        if (/^http:\/\/localhost:\d+$/.test(origin)) return callback(null, true);
-        if (origin === process.env.CLIENT_URL) return callback(null, true);
-        callback(new Error('CORS: Not allowed by policy: ' + origin));
-    },
+    origin: checkAllowedOrigin,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
