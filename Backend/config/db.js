@@ -28,18 +28,32 @@ const initDb = async () => {
     try {
         console.log("Checking database tables...");
         
-        // 1. Create Users Table
+        // 1. Create Users Table (with full_name included)
         await promisePool.query(`
             CREATE TABLE IF NOT EXISTS users (
                 user_id INT AUTO_INCREMENT PRIMARY KEY,
                 username VARCHAR(255) NOT NULL,
+                full_name VARCHAR(255),
                 email VARCHAR(255) NOT NULL UNIQUE,
                 password VARCHAR(255) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
 
-        // 2. Create Notifications Table (required by your WebSocket logic)
+        // 2. Safeguard: Run an ALTER command just in case the table existed without full_name
+        try {
+            await promisePool.query(`
+                ALTER TABLE users ADD COLUMN full_name VARCHAR(255) AFTER username;
+            `);
+            console.log("Added missing full_name column to users table.");
+        } catch (alterError) {
+            // If the column already exists, MySQL will throw an error, which we safely ignore
+            if (alterError.code !== 'ER_DUP_FIELDNAME') {
+                throw alterError;
+            }
+        }
+
+        // 3. Create Notifications Table
         await promisePool.query(`
             CREATE TABLE IF NOT EXISTS notifications (
                 notification_id INT AUTO_INCREMENT PRIMARY KEY,
