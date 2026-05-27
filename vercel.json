@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://aisolution-luva.onrender.com/api/:path*"
+    }
+  ]
+}
