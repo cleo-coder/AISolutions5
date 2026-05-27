@@ -76,7 +76,7 @@ export default function Profile() {
 
     const fetchUserDetails = async (userId, token) => {
         try {
-            const res = await fetch('http://localhost:3000/api/auth/profile', {
+            const res = await fetch('/api/auth/profile', {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const data = await res.json();
@@ -134,7 +134,7 @@ export default function Profile() {
         if (hasProfileChanged) {
             try {
                 const { user_id, ...profileDataToSend } = user; // Exclude user_id from payload
-                const res = await fetch('http://localhost:3000/api/auth/profile', {
+                const res = await fetch('/api/auth/profile', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -176,7 +176,7 @@ export default function Profile() {
                 finalMessages.push('New password must be at least 6 characters long.');
             } else {
                 try {
-                    const res = await fetch(`http://localhost:3000/api/users/${user.user_id}/password`, {
+                    const res = await fetch(`/api/users/${user.user_id}/password`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',

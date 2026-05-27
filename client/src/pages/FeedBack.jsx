@@ -16,7 +16,7 @@ const FeedBack = () => {
     const [showSuccessPopup, setShowSuccessPopup] = useState(false);
     const [selectedProductId, setSelectedProductId] = useState('');
 
-    const API_BASE_URL = 'http://localhost:3000/api';
+    const API_BASE_URL = '/api';
     const navigate = useNavigate();
 
     useEffect(() => {

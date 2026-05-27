@@ -54,7 +54,7 @@ export default function Products() {
     const fetchProductAccessStatus = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:3000/api/feature-access/product-access-status', {
+            const res = await fetch('/api/feature-access/product-access-status', {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -88,7 +88,7 @@ export default function Products() {
 
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:3000/api/feature-access/request-access', {
+            const res = await fetch('/api/feature-access/request-access', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

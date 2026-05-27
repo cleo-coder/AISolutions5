@@ -15,7 +15,7 @@ export default function AdminEvents() {
     useEffect(() => {
         setLoading(true);
         setError(null);
-        fetch('http://localhost:3000/api/events/registrations')
+        fetch('/api/events/registrations')
             .then(res => {
                 if (!res.ok) {
                     throw new Error(`HTTP error! status: ${res.status}`);

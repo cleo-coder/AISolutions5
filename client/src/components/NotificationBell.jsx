@@ -10,8 +10,9 @@ const NotificationBell = ({ userRole, userId }) => {
     const dropdownRef = useRef(null);
     const socketRef = useRef(null);
 
-    const API_BASE_URL = 'http://localhost:3000/api';
-    const SOCKET_URL = 'http://localhost:3000';
+    const API_BASE_URL = '/api';
+    const SOCKET_URL = import.meta.env.VITE_WS_URL || 'http://localhost:3000';
+    
 
     const fetchNotifications = async () => {
         const token = localStorage.getItem('token');

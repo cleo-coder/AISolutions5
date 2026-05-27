@@ -27,7 +27,7 @@ export default function AdminStaffRegister() {
 
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:3000/api/admin/register', {
+            const res = await fetch('/api/admin/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

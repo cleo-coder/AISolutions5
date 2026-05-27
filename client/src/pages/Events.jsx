@@ -22,7 +22,7 @@ export default function Events() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch('http://localhost:3000/api/events')
+        fetch('/api/events')
             .then(res => res.json())
             .then(data => setEvents(data))
             .catch(() => showStatusMessage('Failed to load events', false));
@@ -95,7 +95,7 @@ export default function Events() {
     const processRegistration = async (eventId, emailToUse, userIdToUse) => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:3000/api/events/register', {
+            const res = await fetch('/api/events/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

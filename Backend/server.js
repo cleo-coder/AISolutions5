@@ -118,7 +118,7 @@ app.use((err, req, res, next) => {
 });
 
 server.listen(port, () => {
-    console.log(`🚀 Server running on port ${port}`);
+    console.log(` Server running on port ${port}`);
     console.log(`WebSocket server running on port ${port}`);
 });
 

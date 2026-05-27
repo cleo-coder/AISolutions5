@@ -18,7 +18,7 @@ export default function Dashboard() {
             const decoded = jwtDecode(token);
 
             // Fetch profile
-            fetch(`http://localhost:3000/api/users/${decoded.userId}`, {
+            fetch(`/api/users/${decoded.userId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             })
                 .then((res) => res.json())
@@ -26,7 +26,7 @@ export default function Dashboard() {
                 .catch(() => setError('Failed to fetch profile'));
 
             // Fetch activity stats
-            fetch(`http://localhost:3000/api/users/${decoded.userId}/stats`, {
+            fetch(`/api/users/${decoded.userId}/stats`, {
                 headers: { Authorization: `Bearer ${token}` },
             })
                 .then((res) => res.json())

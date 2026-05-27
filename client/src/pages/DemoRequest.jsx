@@ -30,7 +30,7 @@ const DemoRequest = () => {
                 const decoded = jwtDecode(token);
                 const userId = decoded.userId || decoded.id || decoded._id;
                 setIsLoggedIn(true);
-                fetch(`http://localhost:3000/api/users/${userId}`, {
+                fetch(`/api/users/${userId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 })
                     .then(res => res.json())
@@ -95,7 +95,7 @@ const DemoRequest = () => {
 
             const payload = { company_name: companyName, request_message: requestMessage, preferred_date: preferredDate, email: email };
 
-            const response = await fetch('http://localhost:3000/api/demo/submit', {
+            const response = await fetch('/api/demo/submit', {
                 method: 'POST',
                 headers,
                 body: JSON.stringify(payload)
