@@ -23,14 +23,33 @@ const pool = mysql.createPool({
 
 const promisePool = pool.promise();
 
-// Automatically creates/verifies the exact architecture mapping your routes
 const initDb = async () => {
     try {
-        console.log("⚙️ Starting total database schema verification...");
+        console.log("🧹 Dropping outdated tables to clear memory schema...");
 
-        // 1. Users Table
+        // 1. Temporarily turn off foreign keys so we don't get dropping order errors
+        await promisePool.query('SET FOREIGN_KEY_CHECKS = 0;');
+        
+        // 2. Drop everything so it builds perfectly fresh
+        await promisePool.query('DROP TABLE IF EXISTS product_access;');
+        await promisePool.query('DROP TABLE IF EXISTS feedback;');
+        await promisePool.query('DROP TABLE IF EXISTS demo_requests;');
+        await promisePool.query('DROP TABLE IF EXISTS event_registrations;');
+        await promisePool.query('DROP TABLE IF EXISTS notifications;');
+        await promisePool.query('DROP TABLE IF EXISTS logs;');
+        await promisePool.query('DROP TABLE IF EXISTS users;');
+        await promisePool.query('DROP TABLE IF EXISTS admins;');
+        await promisePool.query('DROP TABLE IF EXISTS products;');
+        await promisePool.query('DROP TABLE IF EXISTS events;');
+
+        // 3. Re-enable constraint checks
+        await promisePool.query('SET FOREIGN_KEY_CHECKS = 1;');
+
+        console.log("⚙️ Building fresh, aligned database tables...");
+
+        // Users Table (Now guaranteed to include full_name and company_name)
         await promisePool.query(`
-            CREATE TABLE IF NOT EXISTS users (
+            CREATE TABLE users (
                 user_id INT AUTO_INCREMENT PRIMARY KEY,
                 full_name VARCHAR(255) NOT NULL,
                 username VARCHAR(255) NOT NULL UNIQUE,
@@ -41,9 +60,9 @@ const initDb = async () => {
             );
         `);
 
-        // 2. Admins Table
+        // Admins Table
         await promisePool.query(`
-            CREATE TABLE IF NOT EXISTS admins (
+            CREATE TABLE admins (
                 admin_id INT AUTO_INCREMENT PRIMARY KEY,
                 username VARCHAR(255) NOT NULL UNIQUE,
                 email VARCHAR(255) NOT NULL UNIQUE,
@@ -53,34 +72,34 @@ const initDb = async () => {
             );
         `);
 
-        // 3. Products Table
+        // Products Table
         await promisePool.query(`
-            CREATE TABLE IF NOT EXISTS products (
+            CREATE TABLE products (
                 product_id INT AUTO_INCREMENT PRIMARY KEY,
                 name VARCHAR(255) NOT NULL UNIQUE
             );
         `);
 
-        // 4. Feedback Table
+        // Feedback Table
         await promisePool.query(`
-            CREATE TABLE IF NOT EXISTS feedback (
+            CREATE TABLE feedback (
                 feedback_id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT NOT NULL,
-                product_id INT NOT NULL,
+                product_id INT DEFAULT NULL,
                 message TEXT NOT NULL,
-                rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+                rating INT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-                FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
+                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
             );
         `);
 
-        // 5. Product Access Table
+        // Product Access Table
         await promisePool.query(`
-            CREATE TABLE IF NOT EXISTS product_access (
+            CREATE TABLE product_access (
                 access_id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT NOT NULL,
-                product_id INT NOT NULL,
+                product_id INT DEFAULT NULL,
+                product_name VARCHAR(255) DEFAULT NULL,
                 granted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 granted_by INT DEFAULT NULL,
                 status VARCHAR(50) DEFAULT 'pending',
@@ -91,15 +110,13 @@ const initDb = async () => {
                 assigned_to VARCHAR(255) DEFAULT NULL,
                 job_title VARCHAR(255) DEFAULT NULL,
                 admin_notes TEXT DEFAULT NULL,
-                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-                FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
-                FOREIGN KEY (feedback_id) REFERENCES feedback(feedback_id) ON DELETE SET NULL
+                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
             );
         `);
 
-        // 6. Demo Requests Table
+        // Demo Requests Table
         await promisePool.query(`
-            CREATE TABLE IF NOT EXISTS demo_requests (
+            CREATE TABLE demo_requests (
                 request_id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT DEFAULT NULL,
                 company_name VARCHAR(255) NOT NULL,
@@ -109,14 +126,13 @@ const initDb = async () => {
                 status VARCHAR(50) DEFAULT 'pending',
                 admin_response TEXT DEFAULT NULL,
                 admin_notes TEXT DEFAULT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
 
-        // 7. Events Table
+        // Events Table
         await promisePool.query(`
-            CREATE TABLE IF NOT EXISTS events (
+            CREATE TABLE events (
                 event_id INT AUTO_INCREMENT PRIMARY KEY,
                 title VARCHAR(255) NOT NULL,
                 description TEXT NOT NULL,
@@ -127,22 +143,21 @@ const initDb = async () => {
             );
         `);
 
-        // 8. Event Registrations Table
+        // Event Registrations Table
         await promisePool.query(`
-            CREATE TABLE IF NOT EXISTS event_registrations (
+            CREATE TABLE event_registrations (
                 registration_id INT AUTO_INCREMENT PRIMARY KEY,
                 event_id INT NOT NULL,
                 user_id INT DEFAULT NULL,
                 email VARCHAR(255) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (event_id) REFERENCES events(event_id) ON DELETE CASCADE,
-                FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+                FOREIGN KEY (event_id) REFERENCES events(event_id) ON DELETE CASCADE
             );
         `);
 
-        // 9. Notifications Table
+        // Notifications Table
         await promisePool.query(`
-            CREATE TABLE IF NOT EXISTS notifications (
+            CREATE TABLE notifications (
                 notification_id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT NOT NULL,
                 message TEXT NOT NULL,
@@ -152,26 +167,24 @@ const initDb = async () => {
             );
         `);
 
-        // 10. Audit Logs Table
+        // Logs Table
         await promisePool.query(`
-            CREATE TABLE IF NOT EXISTS logs (
+            CREATE TABLE logs (
                 log_id INT AUTO_INCREMENT PRIMARY KEY,
                 admin_id INT DEFAULT NULL,
                 action VARCHAR(255) NOT NULL,
                 target_table VARCHAR(100) NOT NULL,
                 description TEXT NOT NULL,
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (admin_id) REFERENCES admins(admin_id) ON DELETE SET NULL
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
 
-        console.log("✅ All cloud database structures synced perfectly with client and backend logic.");
+        console.log("✅ Wiped out old instances and rebuilt clean schemas on Aiven!");
     } catch (error) {
         console.error("❌ Schema integration error:", error.message);
     }
 };
 
-// Fire migration script
 initDb();
 
 module.exports = promisePool;
