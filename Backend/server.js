@@ -15,6 +15,9 @@ const eventRoutes = require('./routes/eventRoutes');
 const demoRoutes = require('./routes/demoRoutes');
 const feedbackRoutes = require('./routes/feedbackRoutes');
 const app = express();
+const app = express();
+// this is to trust Render's proxy headers
+app.set('trust proxy', 1);
 const port = process.env.PORT || 3000;
 const SECRET_KEY = process.env.SECRET_KEY || 'your_secret_key';
 const server = http.createServer(app);
