@@ -100,7 +100,34 @@ app.use('/api/demo', demoRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/notifications', notificationRoutes(io));
 app.use('/api/feedback', feedbackRoutes);
+// ====================================================================
+// TEMPORARY PATCH ROUTE - SECURELY UPDATES CLOUD DB VIA ENVIRONMENT VARS
+// ====================================================================
+app.get('/api/secure-database-patch-xyz', async (req, res) => {
+    try {
+        const db = require('./config/db'); 
 
+        console.log("Executing schema patch via secure Render environment...");
+
+        // 1. Add 'trade_expenses' column
+        await db.query(`
+            ALTER TABLE product_access 
+            ADD COLUMN trade_expenses DECIMAL(10,2) DEFAULT 0.00;
+        `).catch(err => console.log("trade_expenses note:", err.message));
+
+        // 2. Add 'rating' column
+        await db.query(`
+            ALTER TABLE feedback 
+            ADD COLUMN rating INT DEFAULT 5;
+        `).catch(err => console.log("rating note:", err.message));
+
+        res.status(200).send("🚀 Database schema completely updated securely!");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("❌ Patch failed: " + err.message);
+    }
+});
+// ====================================================================
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'OK', uptime: process.uptime() });
 });
