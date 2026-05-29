@@ -100,7 +100,62 @@ app.use('/api/demo', demoRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/notifications', notificationRoutes(io));
 app.use('/api/feedback', feedbackRoutes);
+// REVISED MASTER PATCH - REPAIRS SCHEMAS WITHOUT DISTURBING CORES
+app.get('/api/secure-database-patch-xyz', async (req, res) => {
+    try {
+        const db = require('./config/db'); 
 
+        console.log("🚀 Starting safe database repair sequence...");
+        let logOutput = [];
+
+        // 1. Fix Feedback table (add product_id)
+        await db.query(`
+            ALTER TABLE feedback ADD COLUMN product_id INT;
+        `)
+        .then(() => logOutput.push("✅ Added product_id to feedback"))
+        .catch(err => logOutput.push("ℹ️ feedback.product_id: " + err.message));
+
+        // 2. Fix Event Registrations table (add registered_at column)
+        await db.query(`
+            ALTER TABLE event_registrations ADD COLUMN registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+        `)
+        .then(() => logOutput.push("✅ Added registered_at to event_registrations"))
+        .catch(err => logOutput.push("ℹ️ event_registrations.registered_at: " + err.message));
+
+        // 3. Fallback compatibility column for rogue queries looking for 'admin' field instead of 'role'
+        await db.query(`
+            ALTER TABLE users ADD COLUMN admin TINYINT(1) DEFAULT 0;
+        `)
+        .then(() => logOutput.push("✅ Added fallback 'admin' column to users to prevent rogue query crashes"))
+        .catch(err => logOutput.push("ℹ️ users.admin fallback: " + err.message));
+
+        // Synchronize the fallback flag with your existing roles
+        await db.query(`
+            UPDATE users SET admin = 1 WHERE role = 'admin';
+        `);
+
+        // 4. Seed core products data
+        await db.query(`
+            INSERT INTO products (name, description) 
+            VALUES 
+            ('Prototyping', 'Rapid prototyping tool access'),
+            ('AI Assistant', 'Core AI system access')
+            ON DUPLICATE KEY UPDATE name=name;
+        `)
+        .then(() => logOutput.push("🌱 Seeded core products data"))
+        .catch(err => logOutput.push("❌ Seeding failed: " + err.message));
+
+        res.status(200).send(`
+            <h1>⚡ System Compatibility Patch Complete ⚡</h1>
+            <pre>${logOutput.join('\n')}</pre>
+            <p>Ready to go! All structures protected.</p>
+        `);
+
+    } catch (err) {
+        console.error("Failure during patch:", err);
+        res.status(500).send("❌ Patch failed: " + err.message);
+    }
+});
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'OK', uptime: process.uptime() });
 });
