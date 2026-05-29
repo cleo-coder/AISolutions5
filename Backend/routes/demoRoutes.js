@@ -48,12 +48,19 @@ router.post('/submit', async (req, res) => {
 
         const requestId = result.insertId;
 
-        await createNotification(user_id, `Your demo request for ${company_name} has been submitted successfully! We will contact you soon.`);
+        // 1. Send the personalized confirmation text to the regular user (if logged in)
+        if (user_id) {
+            await createNotification(
+                user_id, 
+                `Your demo request for ${company_name} has been submitted successfully! We will contact you soon.`
+            );
+        }
 
-        const senderInfo = full_name ? `${full_name} (Email: ${email || 'N/A'}, User ID: ${user_id || 'N/A'})` : `Guest User (Email: ${email || 'N/A'})`;
-        const notificationMessage = `New Demo Request from: ${senderInfo}. Company: ${company_name}. Message: "${request_message}". Preferred Date: ${preferred_date}.`;
+        // 2. Clear out old layout and insert your clean, professional manager template string
+        const userDisplayName = full_name || 'A user';
+        const adminNotificationMessage = `${userDisplayName} from ${company_name} has submitted a demo request!`;
 
-        await notifyAdmins(notificationMessage);
+        await notifyAdmins(adminNotificationMessage);
 
         res.status(201).json({ message: 'Demo request submitted successfully', request_id: requestId });
     } catch (err) {

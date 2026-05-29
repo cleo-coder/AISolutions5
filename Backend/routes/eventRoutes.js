@@ -42,15 +42,25 @@ router.post('/register', async (req, res) => {
             [event_id, user_id || null, email]
         );
 
+        // --- NEW CUSTOM NOTIFICATION ENGINE BLOCKS ---
         if (user_id) {
+            // 1. Send confirmation back to the regular user who registered
             await createNotification(user_id, `You have successfully registered for the event: "${eventName}"!`);
 
-            const [userRows] = await db.query('SELECT email FROM users WHERE user_id = ?', [user_id]);
-            const userEmail = userRows.length > 0 ? userRows[0].email : `ID: ${user_id}`;
-            await notifyAdmins(`New registration for "${eventName}" from user ${userEmail}.`);
+            // 2. Fetch the detailed name and company fields for the admin notice
+            const [userRows] = await db.query('SELECT full_name, company_name FROM users WHERE user_id = ?', [user_id]);
+            
+            const userDisplayName = userRows.length > 0 && userRows[0].full_name ? userRows[0].full_name : 'A logged-in user';
+            const userCompanyName = userRows.length > 0 && userRows[0].company_name ? userRows[0].company_name : 'their company';
+            
+            const adminNotificationMessage = `${userDisplayName} from ${userCompanyName} has registered for ${eventName}`;
+            await notifyAdmins(adminNotificationMessage);
+            
         } else if (email) {
-            await notifyAdmins(`New guest registration for "${eventName}" from email: ${email}.`);
+            // Fallback layout for anonymous guest registrations
+            await notifyAdmins(`Guest User (${email}) has registered for ${eventName}`);
         }
+        // ----------------------------------------------
 
         res.status(201).json({ message: 'Registered successfully' });
     } catch (error) {

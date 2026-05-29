@@ -5,6 +5,7 @@ const router = express.Router();
 const db = require('../config/db'); // Ensure this path is correct for your db connection
 // Import verifyToken and checkRole from authMiddleware
 const { verifyToken, checkRole } = require('../middleware/authMiddleware');
+const { createNotification, notifyAdmins } = require('../utils/notificationHelper');
 
 // Removed the custom authenticateToken middleware from here
 // as we will use verifyToken and checkRole('user') from authMiddleware
@@ -63,6 +64,24 @@ router.post('/request-access', verifyToken, checkRole('user'), async (req, res) 
         );
 
         console.log('/request-access: Request successfully inserted. Status: requested');
+
+        // --- NEW CUSTOM NOTIFICATION ENGINE BLOCKS ---
+        // 1. Send the custom confirmation message back to the regular user who requested access
+        await createNotification(
+            userId, 
+            `Your request for access to ${product_name} has been submitted.`
+        );
+
+        // 2. Fetch the user details to cleanly construct the admin notification string
+        const [userRows] = await db.query('SELECT full_name, company_name FROM users WHERE user_id = ?', [userId]);
+        
+        const userDisplayName = userRows.length > 0 && userRows[0].full_name ? userRows[0].full_name : 'A user';
+        const userCompanyName = userRows.length > 0 && userRows[0].company_name ? userRows[0].company_name : 'their company';
+
+        const adminNotificationMessage = `${userDisplayName} from ${userCompanyName} requested access to ${product_name}`;
+        await notifyAdmins(adminNotificationMessage);
+        // ----------------------------------------------
+
         return res.json({ status: 'requested' });
     } catch (error) {
         console.error('Error in /request-access (inside try-catch block):', error.message);

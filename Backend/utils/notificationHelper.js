@@ -1,4 +1,4 @@
-﻿const db = require('../config/db'); // Ensure this path is correct for your database connection
+﻿const db = require('../config/db'); // database connection
 
 /**
  * Inserts a new notification into the database.
@@ -16,10 +16,8 @@ async function createNotification(userId, message) {
             'INSERT INTO notifications (user_id, message) VALUES (?, ?)',
             [userId, message]
         );
-        // console.log(`✉️ Notification created for user ${userId}: "${message}"`); // Uncomment for verbose logging
     } catch (error) {
         console.error(`❌ Error creating notification for user ${userId}:`, error.message);
-        // It's important to log this error but not block the main operation
     }
 }
 
@@ -33,7 +31,7 @@ async function getAdminUserIds() {
         return adminUsers.map(admin => admin.id);
     } catch (error) {
         console.error('❌ Error fetching admin user IDs for notification:', error.message);
-        return []; // Return an empty array to prevent errors downstream
+        return []; 
     }
 }
 
@@ -48,7 +46,9 @@ async function notifyAdmins(message) {
     }
 }
 
+// Make sure all 3 functions are exported!
 module.exports = {
     createNotification,
+    getAdminUserIds,
     notifyAdmins,
 };
